@@ -6,7 +6,12 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action, int mod
 
 GLFWwindow *initGL();
 
-GLint compileShader(GLenum type);
+GLint compileShader(GLenum type, GLchar * shaderSource);
+
+
+GLchar *fragmentShaderSource = (GLchar *) "#version 330 core\n\nout vec4 color;\n\nvoid main() {\n    color = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n}";
+GLchar *vertexShaderSource = (GLchar *) "#version 330 core\n\nlayout (location = 0) in vec3 position;\n\nvoid main() {\n    gl_Position = vec4(position.x, position.y, position.z, 1.0);\n}";
+
 
 int main() {
     GLFWwindow *window = initGL();
@@ -17,49 +22,17 @@ int main() {
             0.0f,  0.5f, 0.0f
     };
 
-    GLchar *vertexShaderSource = (GLchar *) "#version 330 core\n\nlayout (location = 0) in vec3 position;\n\nvoid main() {\n    gl_Position = vec4(position.x, position.y, position.z, 1.0);\n}";
-    GLchar *fragmentShaderSource = (GLchar *) "#version 330 core\n\nout vec4 color;\n\nvoid main() {\n    color = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n}";
-
     GLuint VBO;
 
     glGenBuffers(1, &VBO);
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
-    GLuint vertexShader;
-    vertexShader = glCreateShader(GL_VERTEX_SHADER);
-
-    glShaderSource(vertexShader, 1, &vertexShaderSource, nullptr);
-    glCompileShader(vertexShader);
-
-    GLint success;
-    GLchar infoLog[512];
-
-    glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
-
-    if (!success) {
-        glGetShaderInfoLog(vertexShader, 512, nullptr, infoLog);
-        std::cout << infoLog << std::endl;
-    }
-
-    GLuint fragmentShader;
-    fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-
-    glShaderSource(fragmentShader, 1, &fragmentShaderSource, nullptr);
-    glCompileShader(fragmentShader);
-
-    glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success);
-
-    if (!success) {
-        glGetShaderInfoLog(fragmentShader, 512, nullptr, infoLog);
-        std::cout << infoLog << std::endl;
-    }
-
-
+    GLuint vertexShader = compileShader(GL_VERTEX_SHADER, vertexShaderSource);
+    GLuint fragmentShader = compileShader(GL_FRAGMENT_SHADER, fragmentShaderSource);
 
     while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();
-
 
         glClearColor(0.2f, 0.3f, 0.3f, 0.3f);
         glClear(GL_COLOR_BUFFER_BIT);
@@ -110,8 +83,23 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action, int mod
     }
 }
 
-GLint compileShader(GLenum type) {
+GLint compileShader(GLenum type, GLchar *shaderSource) {
+    GLint success;
+    GLchar infoLog[512];
+    GLuint shader;
+    shader = glCreateShader(type);
 
-    return 0;
+    glShaderSource(shader, 1, &shaderSource, nullptr);
+    glCompileShader(shader);
+
+    glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
+
+    if (!success) {
+        glGetShaderInfoLog(shader, 512, nullptr, infoLog);
+        std::cout << infoLog << std::endl;
+    }
+
+    return shader;
 }
+
 
