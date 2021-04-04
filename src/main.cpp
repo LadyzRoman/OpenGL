@@ -1,20 +1,14 @@
 #include <iostream>
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
+#include "Shader.h"
 
 void key_callback(GLFWwindow *window, int key, int scancode, int action, int mode);
 
-GLFWwindow *initGL();
-
-GLint compileShader(GLenum type, GLchar *shaderSource);
-
-
-GLchar *fragmentShaderSource = (GLchar *) "#version 330 core\n\nout vec4 color;\n\nuniform vec4 outColor;\n\nvoid main() {\n    color = outColor;\n}";
-GLchar *vertexShaderSource = (GLchar *) "#version 330 core\n\nlayout (location = 0) in vec3 position;\n\nout vec4 vertexColor;\n\nvoid main() {\n    gl_Position = vec4(position, 1.0);\n    vertexColor = vec4(0.5f, 0.0f, 0.0f, 1.0f);\n}";
-
+GLFWwindow *initWindow();
 
 int main() {
-    GLFWwindow *window = initGL();
+    GLFWwindow *window = initWindow();
 
     GLfloat vertices[] = {
             0.5f, 0.5f, 0.0f,
@@ -37,26 +31,6 @@ int main() {
     GLuint EBO;
     glGenBuffers(1, &EBO);
 
-    GLuint vertexShader = compileShader(GL_VERTEX_SHADER, vertexShaderSource);
-    GLuint fragmentShader = compileShader(GL_FRAGMENT_SHADER, fragmentShaderSource);
-    GLuint shaderProgram = glCreateProgram();
-
-    glAttachShader(shaderProgram, vertexShader);
-    glAttachShader(shaderProgram, fragmentShader);
-    glLinkProgram(shaderProgram);
-
-    GLint success;
-    GLchar infoLog[512];
-
-    glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
-    if (!success) {
-        glGetProgramInfoLog(shaderProgram, 512, nullptr, infoLog);
-        std::cout << infoLog << std::endl;
-    }
-
-    glDeleteShader(vertexShader);
-    glDeleteShader(fragmentShader);
-
 
     glBindVertexArray(VAO);
 
@@ -73,6 +47,8 @@ int main() {
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
+    Shader shader("../resources/shaders/vertexShader.glsl", "../resources/shaders/fragmentShader.glsl");
+
 
     while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();
@@ -80,13 +56,8 @@ int main() {
         glClearColor(0.2f, 0.3f, 0.3f, 0.3f);
         glClear(GL_COLOR_BUFFER_BIT);
 
-        glUseProgram(shaderProgram);
-
-        GLfloat timeValue = glfwGetTime();
-        GLfloat greenValue = (sin(timeValue) / 2) + 0.5;
-        GLint vertexColorLocation = glGetUniformLocation(shaderProgram, "outColor");
-        glUniform4f(vertexColorLocation, 0.0f, greenValue, 0.0f, 0.0f);
-
+        shader.use();
+        shader.configureProgram(0.2f);
         glBindVertexArray(VAO);
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
@@ -100,7 +71,7 @@ int main() {
 }
 
 
-GLFWwindow *initGL() {
+GLFWwindow *initWindow() {
     glfwInit();
 
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -119,7 +90,7 @@ GLFWwindow *initGL() {
     glfwMakeContextCurrent(window);
 
     if (glewInit() != GLEW_OK) {
-        std::cout << "Failed to initGL GLEW" << std::endl;
+        std::cout << "Failed to initWindow GLEW" << std::endl;
     }
 
     int width, height;
@@ -135,25 +106,6 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action, int mod
     if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
         glfwSetWindowShouldClose(window, GLFW_TRUE);
     }
-}
-
-GLint compileShader(GLenum type, GLchar *shaderSource) {
-    GLint success;
-    GLchar infoLog[512];
-    GLuint shader;
-    shader = glCreateShader(type);
-
-    glShaderSource(shader, 1, &shaderSource, nullptr);
-    glCompileShader(shader);
-
-    glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
-
-    if (!success) {
-        glGetShaderInfoLog(shader, 512, nullptr, infoLog);
-        std::cout << infoLog << std::endl;
-    }
-
-    return shader;
 }
 
 
