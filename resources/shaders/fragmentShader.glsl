@@ -1,9 +1,12 @@
 #version 330 core
 
+in vec3 vertexColor;
+in vec2 ourTexCoord;
+
 out vec4 color;
 
-in vec4 vertexColor;
+uniform sampler2D ourTexture;
 
 void main() {
-    color = vertexColor;
+    color = texture(ourTexture, ourTexCoord) * vec4(vertexColor, 1.0f);
 }

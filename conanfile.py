@@ -6,7 +6,9 @@ class OpenGL(ConanFile):
     requires = (
         "opengl/system",
         "glfw/3.3.3",
-        "glew/2.2.0"
+        "glew/2.2.0",
+        "cimg/2.9.4",
+        "glm/0.9.9.8"
     )
     generators = "cmake"
 
